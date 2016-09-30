@@ -40,7 +40,7 @@ ls distribution/target/distribution-*.zip
 bin/stinift.sh example/test.json
 ```
 
-会生成两个文件 `file.out_0`, `file.out_0`，则部署成功
+会生成两个文件 `file.out_0`, `file.out_1`，则部署成功
 
 ## 插件
 
