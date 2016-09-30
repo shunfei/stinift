@@ -54,6 +54,7 @@
                         </goals>
                         <phase>package</phase>
                         <configuration>
+                            <finalName>stinift-${project.version}</finalName>
                             <descriptors>
                                 <descriptor>assembly.xml</descriptor>
                             </descriptors>

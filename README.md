@@ -23,10 +23,10 @@ stinift是[舜飞科技](http://www.sunteng.com)开发的并且内部广泛使�
 git clone git@github.com:shunfei/stinift.git
 cd stinift
 mvn clean package
-ls distribution/target/distribution-*.zip
+ls distribution/target/stinift-*-bin.zip
 ```
 
-生成的 `distribution/target/distribution-*.zip` 就是可以部署的文件
+生成的 `distribution/target/stinift-*-bin.zip` 就是可以部署的文件
 
 ## 配置
 
