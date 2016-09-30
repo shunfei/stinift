@@ -46,7 +46,7 @@ bin/stinift.sh example/test.json
 
 ## 插件
 
-目前支持 file, hbase, hive, mongodb, mysql. 具体使用配置参考 `example/`
+目前支持 `rowfile`(csv), `hbase`, `hive`, `mongo`, `mysql`. 具体使用配置参考 `example/`
 
 * 使用 hive, hbase 等插件需要把 hadoop 的 core-site.xml, hdfs-site.xml 放到 `conf` 目录
 * 使用 hive writer，stinift 会先创建一个名为 `stinift.<randomstr>` 的临时表，数据目录位于 `/user/stinift/<randomstr>`，数据先以 csv 格式写入这个目录，然后再导入真正的目标表。
