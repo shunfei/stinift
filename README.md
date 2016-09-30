@@ -30,9 +30,11 @@ ls distribution/target/distribution-*.zip
 
 ## 配置
 
-查看 `conf` 目录，`env.sh` 设置 jvm 运行环境，比如设置hadoop 用户
-`stinift.properties` 设置 stinift 参数，比如 `stinift.plugin.classes` 添加插件
-`log4j.xml` log 设置
+查看 `conf` 目录，
+
+* `env.sh` - 设置 jvm 运行环境，比如设置hadoop 用户
+* `stinift.properties` - 设置 stinift 参数，比如 `stinift.plugin.classes` 添加插件
+* `log4j.xml` - log 设置
 
 ## 运行
 
