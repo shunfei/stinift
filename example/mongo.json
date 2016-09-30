@@ -1,0 +1,42 @@
+{
+    "resources": [
+        {
+            "name": "rs1",
+            "type": "mysql",
+            "host": "192.168.1.60",
+            "port": 3306,
+            "db": "test",
+            "user": "root",
+            "pwd": "root"
+        },
+        {
+            "name": "mongo1",
+            "type": "mongo",
+            "host": "192.168.10.60",
+            "port": "27029",
+            "db": "dsp"
+        }
+    ],
+    "readers": [
+        {
+            "name": "r1",
+            "type": "mongo",
+            "mongo": "mongo1",
+            "collection": "Product",
+            "fields": "b.e,a"
+        }
+    ],
+    "writers": [
+        {
+            "name": "mw1",
+            "type": "mysql",
+            "mysql": "rs1",
+            "table": "test",
+            "column": "name,hehe",
+            "pre": "truncate table test"
+        }
+    ],
+    "routes": [
+        "r1 > mw1"
+    ]
+}

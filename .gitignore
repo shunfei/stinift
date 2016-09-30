@@ -1,0 +1,10 @@
+.DS_Store
+.idea
+*.iml
+*.swp
+.project
+.buildpath
+target
+plugins/lib/
+lib/
+*.log

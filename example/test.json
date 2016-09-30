@@ -1,0 +1,24 @@
+{
+    "readers": [
+        {
+            "name": "r1",
+            "type": "test",
+            "rowCount": 10,
+            "columnNum": 4,
+            "failCount": -1
+        }
+    ],
+    "writers": [
+        {
+            "name": "w1",
+            "type": "rowfile",
+            "file": "file.out",
+            "sep": "\t",
+            "append": true,
+            "split": 2
+        }
+    ],
+    "routes": [
+        "r1 > w1"
+    ]
+}

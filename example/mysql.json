@@ -1,0 +1,35 @@
+{
+    "resources": [
+        {
+            "name": "rs1",
+            "type": "mysql",
+            "host": "192.168.1.60",
+            "port": 3306,
+            "db": "test",
+            "user": "root",
+            "pwd": "root"
+        }
+    ],
+    "readers": [
+        {
+            "name": "r1",
+            "type": "mysql",
+            "mysql": "rs1",
+            "table": "domain",
+            "column": "name"
+        }
+    ],
+    "writers": [
+        {
+            "name": "mw1",
+            "type": "mysql",
+            "mysql": "rs1",
+            "table": "test",
+            "column": "name",
+            "pre": "truncate table test"
+        }
+    ],
+    "routes": [
+        "r1 > mw1"
+    ]
+}

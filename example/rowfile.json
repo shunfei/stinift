@@ -1,0 +1,23 @@
+{
+    "readers": [
+        {
+            "name": "r1",
+            "type": "rowfile",
+            "file": "file.in",
+            "sep": ","
+        }
+    ],
+    "writers": [
+        {
+            "name": "w1",
+            "type": "rowfile",
+            "file": "sftest_file.out",
+            "sep": "_",
+            "append": true,
+            "split": 2
+        }
+    ],
+    "routes": [
+        "r1 > w1"
+    ]
+}

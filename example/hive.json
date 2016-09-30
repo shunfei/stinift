@@ -1,0 +1,54 @@
+{
+    "resources": [
+        {
+            "name": "hive1",
+            "type": "hive",
+            "host": "sf41",
+            "port": 10000,
+            "db": "default",
+            "user": "",
+            "pwd": ""
+        },
+        {
+            "name": "h1",
+            "type": "hbase",
+            "configPath": "/usr/local/hbase/conf/hbase-site.xml"
+        }
+    ],
+    "readers": [
+        {
+            "name": "r1",
+            "type": "hive",
+            "hive": "hive1",
+            "sql": "select * from trend_campaign_only where user_id > 1000 limit 10"
+        }
+    ],
+    "writers": [
+        {
+            "name": "counter",
+            "type": "counting",
+            "infoStep": 10000
+        },
+        {
+            "name": "hw2",
+            "type": "hbase",
+            "hbase": "h1",
+            "table": "test",
+            "columns": "_key_, cf:d1, cf:d2, cf:d3",
+            "strategy": "duplicate"
+        },
+        {
+            "name": "file",
+            "type": "rowfile",
+            "file": "sftest_file.out",
+            "split": 2
+        },
+        {
+            "name": "w2",
+            "type": "test"
+        }
+    ],
+    "routes": [
+        "r1 > file, w2"
+    ]
+}
