@@ -19,12 +19,12 @@ import java.util.regex.Pattern;
 
 public class JsonUtils {
 
-    public static <T> T mapJson(String path, Class<T> clazz) throws IOException {
-        return Config.jsonMapper.readValue(readJsonFile(path), clazz);
+    public static <T> T mapJson(String path, Class<T> clazz, Map<String, String> params) throws IOException {
+        return Config.jsonMapper.readValue(readJsonFile(path, params), clazz);
     }
 
-    public static <T> T mapJson(String path, TypeReference ref) throws IOException {
-        return Config.jsonMapper.readValue(readJsonFile(path), ref);
+    public static <T> T mapJson(String path, TypeReference ref, Map<String, String> params) throws IOException {
+        return Config.jsonMapper.readValue(readJsonFile(path, params), ref);
     }
 
     public static <T extends JsonInheritable> void fillInherit(Map<String, T> nameMap, List<T> inheritables) {
@@ -67,13 +67,14 @@ public class JsonUtils {
 
     private static final Pattern regex = Pattern.compile("\"@extend:.*?\"");
 
-    public static String readJsonFile(String path) throws IOException {
+    public static String readJsonFile(String path, Map<String, String> params) throws IOException {
         File configFile = new File(path);
         if (!configFile.isFile() && !configFile.canRead()) {
             throw new RuntimeException(String.format("json file[%s] invalid!", path));
         }
         String dir = configFile.getParent();
         String content = IOUtils.toString(new FileInputStream(configFile));
+        content = contentWithProb(content, params);
 
         Matcher matcher = regex.matcher(content);
         StringBuffer sb = new StringBuffer();
@@ -83,10 +84,22 @@ public class JsonUtils {
             if (!replaceFile.startsWith("/")) {
                 replaceFile = dir + "/" + replaceFile;
             }
-            String replaceJson = readJsonFile(replaceFile);
+            String replaceJson = readJsonFile(replaceFile, params);
             matcher.appendReplacement(sb, replaceJson);
         }
         matcher.appendTail(sb);
         return sb.toString();
+    }
+
+    public static String contentWithProb(String content, Map<String, String> params) {
+        if (params == null) {
+            return content;
+        } else {
+            for (String key : params.keySet()) {
+                String value = params.get(key);
+                content = content.replace("${" + key + "}", value);
+            }
+            return content;
+        }
     }
 }

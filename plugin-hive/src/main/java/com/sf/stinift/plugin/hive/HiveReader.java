@@ -99,7 +99,7 @@ public class HiveReader extends Reader {
                 return table != null && column != null &&
                         table.matches("^[a-zA-Z0-9_]+$") &&
                         column.matches("^[a-zA-Z0-9_,]+$") &&
-                        (where == null || where.matches("^[^;]$"));
+                        (where == null || where.matches("^[^;]*$"));
             }
         }
 
@@ -113,7 +113,7 @@ public class HiveReader extends Reader {
                     sql = String.format("select %s from %s",
                             column, table);
                 } else {
-                    String.format("select %s from %s where (%s)",
+                    sql = String.format("select %s from %s where (%s)",
                             column, table, where);
                 }
             }

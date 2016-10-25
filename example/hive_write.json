@@ -1,21 +1,13 @@
 {
-    "resources": [
-        {
-            "name": "rs1",
-            "type": "mysql",
-            "host": "192.168.1.60",
-            "port": 3306,
-            "db": "test",
-            "user": "root",
-            "pwd": "root"
-        },
+    "resources":[
         {
             "name": "hive1",
             "type": "hive",
             "host": "192.168.10.42",
             "db": "default",
             "user": "root",
-            "pwd": ""
+            "pwd": "",
+            "auth": "noSasl"
         }
     ],
     "readers": [

@@ -25,11 +25,12 @@ public class HiveConnection extends Resource {
     private final String db;
     private final String user;
     private final String pwd;
+    private final String auth;
     private TCLIService.Client client;
     private ThriftHiveMetastore.Client metastoreClient;
 
     HiveConnection(String host, Integer port, String metaStoreHost,
-                   Integer metaStorePort, String db, String user, String pwd) {
+                   Integer metaStorePort, String db, String user, String pwd, String auth) {
         this.host = host;
         this.port = port;
         this.metaStoreHost = metaStoreHost;
@@ -37,10 +38,19 @@ public class HiveConnection extends Resource {
         this.db = db;
         this.pwd = pwd;
         this.user = user;
+        this.auth = auth;
+    }
+
+    public String getUser() {
+        return user;
+    }
+
+    public String getDb() {
+        return db;
     }
 
     public Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(String.format("jdbc:hive2://%s:%d/%s;auth=noSasl", host, port, db), user, pwd);
+        return DriverManager.getConnection(String.format("jdbc:hive2://%s:%d/%s;auth=%s", host, port, db, auth), user, pwd);
     }
 
     public HiveSession openSession() throws TException {
@@ -102,6 +112,8 @@ public class HiveConnection extends Resource {
         public String user;
         @JsonProperty
         public String pwd;
+        @JsonProperty
+        public String auth;
 
         public static int DEFAULT_PORT = 10000;
         public static int DEFAULT_METASTORE_PORT = 9083;
@@ -118,7 +130,10 @@ public class HiveConnection extends Resource {
             if (metaStoreHost == null) {
                 metaStoreHost = host;
             }
-            return new HiveConnection(host, port, metaStoreHost, metaStorePort, db, user, pwd);
+            if (auth == null) {
+                auth = "NONE";
+            }
+            return new HiveConnection(host, port, metaStoreHost, metaStorePort, db, user, pwd, auth);
         }
     }
 }

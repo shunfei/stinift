@@ -5,6 +5,7 @@ import com.sf.stinift.exchange.Fetchable;
 import com.sf.stinift.exchange.Row;
 import com.sf.stinift.log.Logger;
 
+import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
 import org.apache.hive.service.cli.RowSet;
@@ -16,8 +17,6 @@ import org.apache.hive.service.cli.thrift.TExecuteStatementResp;
 import org.apache.hive.service.cli.thrift.TFetchOrientation;
 import org.apache.hive.service.cli.thrift.TFetchResultsReq;
 import org.apache.hive.service.cli.thrift.TFetchResultsResp;
-import org.apache.hive.service.cli.thrift.TGetColumnsReq;
-import org.apache.hive.service.cli.thrift.TGetColumnsResp;
 import org.apache.hive.service.cli.thrift.TOperationHandle;
 import org.apache.hive.service.cli.thrift.TProtocolVersion;
 import org.apache.hive.service.cli.thrift.TRowSet;
@@ -52,7 +51,7 @@ public class HiveSession {
         TExecuteStatementReq tExecuteStatementReq = new TExecuteStatementReq(tSessionHandle, query);
         TExecuteStatementResp executeStatementResp = client.ExecuteStatement(tExecuteStatementReq);
         if (executeStatementResp.getStatus().getStatusCode() != TStatusCode.SUCCESS_STATUS) {
-            throw new RuntimeException("execute query:" + query + ". error!");
+            throw new RuntimeException("execute query:" + query + ". error! " + executeStatementResp.getStatus().getErrorMessage());
         }
         TOperationHandle tOperationHandle = executeStatementResp.getOperationHandle();
         return queryResult(tOperationHandle);
@@ -103,20 +102,14 @@ public class HiveSession {
         };
     }
 
-    public String[] getColumns(String table) throws TException {
-        TGetColumnsReq tGetColumnsReq = new TGetColumnsReq();
-        tGetColumnsReq.setSessionHandle(tSessionHandle);
-        tGetColumnsReq.setTableName(table);
-        TGetColumnsResp tGetColumnsResp = client.GetColumns(tGetColumnsReq);
-
-        Fetchable fetchable = queryResult(tGetColumnsResp.getOperationHandle());
-        List<String> result = new ArrayList<String>();
-        Row row;
-        while ((row = (Row) fetchable.fetch()) != null) {
-            result.add(row.getField(3));
+    public String[] getColumns(String db, String table) throws TException {
+        List<String> columns = new ArrayList<String>();
+        List<FieldSchema> fieldSchemaList = metastoreClient.get_fields(db, table);
+        for (FieldSchema fieldSchema : fieldSchemaList) {
+            columns.add(fieldSchema.getName());
         }
 
-        return result.toArray(new String[0]);
+        return columns.toArray(new String[0]);
     }
 
     public String getTableLocation(String db, String table) throws TException {

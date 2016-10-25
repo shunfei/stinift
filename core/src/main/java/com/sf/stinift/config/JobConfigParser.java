@@ -29,7 +29,7 @@ import java.util.Map;
 import javax.annotation.Nullable;
 
 public class JobConfigParser {
-    public static JobParam parseConfig(String path) throws Exception {
+    public static JobParam parseConfig(String path, final Map<String, String> params) throws Exception {
         List<String> filePaths = Utils.wildcardFiles(path);
         JobJsonConfig config = JobJsonConfig.merge(
                 Lists.transform(
@@ -38,7 +38,7 @@ public class JobConfigParser {
                             @Override
                             public JobJsonConfig apply(String s) {
                                 try {
-                                    return JsonUtils.mapJson(s, JobJsonConfig.class);
+                                    return JsonUtils.mapJson(s, JobJsonConfig.class, params);
                                 } catch (IOException e) {
                                     throw new RuntimeException(e);
                                 }

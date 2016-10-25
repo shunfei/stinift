@@ -17,6 +17,7 @@ import org.apache.commons.lang.StringUtils;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.List;
 
 public class MysqlReader extends Reader {
@@ -50,7 +51,10 @@ public class MysqlReader extends Reader {
         MysqlConnection mysqlConn = (MysqlConnection) resource;
         try {
             connection = mysqlConn.getDataSource().getConnection();
-            ResultSet resultSet = connection.createStatement().executeQuery(sql);
+            Statement statement = connection.createStatement(
+                    ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+            statement.setFetchSize(Integer.MIN_VALUE);
+            ResultSet resultSet = statement.executeQuery(sql);
             int colCount = resultSet.getMetaData().getColumnCount();
             while (resultSet.next()) {
                 Row row = new Row(colCount);
@@ -99,7 +103,7 @@ public class MysqlReader extends Reader {
                 return table != null && column != null &&
                         table.matches("^[a-zA-Z0-9_]+$") &&
                         column.matches("^[a-zA-Z0-9_,]+$") &&
-                        (where == null || where.matches("^[^;]$"));
+                        (where == null || where.matches("^[^;]*$"));
             }
         }
 

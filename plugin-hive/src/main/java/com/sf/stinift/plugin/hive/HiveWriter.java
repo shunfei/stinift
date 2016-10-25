@@ -19,9 +19,11 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.thrift.TException;
 
 import java.io.IOException;
+import java.security.PrivilegedExceptionAction;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -60,7 +62,7 @@ public class HiveWriter extends Writer {
     }
 
     @Override
-    public boolean start(WorkerContext context, Fetchable fetchable) throws Exception {
+    public boolean start(WorkerContext context, final Fetchable fetchable) throws Exception {
         Resource resource = context.getResource(hiveName);
         if (resource == null) {
             throw new RuntimeException(String.format("hive resource [%s]", hiveName));
@@ -68,8 +70,8 @@ public class HiveWriter extends Writer {
         HiveConnection hiveConn = (HiveConnection) resource;
 
 
-        String tmptable = Hex.encodeHexString(UUID.randomUUID().toString().getBytes());
-        String uploadFilePath = "/user/stinift/" + tmptable;
+        final String tmptable = Hex.encodeHexString(UUID.randomUUID().toString().getBytes());
+        final String uploadFilePath = "/user/stinift/" + tmptable;
 
         try {
             session = hiveConn.openSession();
@@ -78,9 +80,17 @@ public class HiveWriter extends Writer {
                 session.execute(pre);
             }
 
-            String path = createTable(tmptable, column, uploadFilePath);
-            upload(fetchable, path);
-            insertTable(table, tmptable, partition, column);
+            UserGroupInformation ugi = UserGroupInformation.createRemoteUser(hiveConn.getUser());
+            UserGroupInformation.setLoginUser(ugi);
+            ugi.doAs(new PrivilegedExceptionAction<Object>() {
+                @Override
+                public Object run() throws Exception {
+                    String path = createTable(tmptable, column, uploadFilePath);
+                    upload(fetchable, path);
+                    return null;
+                }
+            });
+            insertTable(hiveConn.getDb(), table, tmptable, partition, column);
 
             if (StringUtils.isNotBlank(post)) {
                 session.execute(pre);
@@ -101,8 +111,8 @@ public class HiveWriter extends Writer {
         session.execute(dropTableSql);
     }
 
-    private void insertTable(String table, String tmpTable, String partition, String column) throws TException {
-        String[] queryColumns = merge(column.split(","), session.getColumns(table));
+    private void insertTable(String db, String table, String tmpTable, String partition, String column) throws TException {
+        String[] queryColumns = merge(column.split(","), session.getColumns(db, table));
         String insertToTargetSql = String.format("insert overwrite table %s ", table);
         if (StringUtils.isNotBlank(partition)) {
             insertToTargetSql += String.format("partition(%s)\n", partition);
@@ -144,7 +154,6 @@ public class HiveWriter extends Writer {
     }
 
     private void upload(Fetchable fetchable, String filepath) throws IOException {
-        //UserGroupInformation.setLoginUser(UserGroupInformation.createRemoteUser("root"));
         Configuration configuration = new Configuration();
         FileSystem fs = new Path(filepath).getFileSystem(configuration);
         FSDataOutputStream outputStream = fs.create(new Path(filepath, "upload"));
@@ -181,7 +190,7 @@ public class HiveWriter extends Writer {
         private boolean valid() {
             return table != null && column != null &&
                     table.matches("^[a-zA-Z0-9_]+$") &&
-                    column.matches("^[a-zA-Z0-9,]+$");
+                    column.matches("^[a-zA-Z0-9_,]+$");
         }
 
         @Override

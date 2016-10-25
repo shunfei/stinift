@@ -12,7 +12,7 @@ public class ResourcesBase implements Resources {
 
     Map<String, Resource> resources;
 
-    private ResourcesBase() {}
+    protected ResourcesBase() {}
 
     public void setUserResources(Map<String, Resource> resources) {
         this.resources = resources;
