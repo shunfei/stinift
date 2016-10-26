@@ -123,7 +123,7 @@ public class HiveWriter extends Writer {
     private String createTable(String table, String column, String location) throws TException {
         String[] columns = column.split(",");
         for (int i = 0; i < columns.length; i++) {
-            columns[i] = columns[i] + " string";
+            columns[i] = "`" + columns[i].trim() + "` string";
         }
         String createTableSql = String.format(
                 "create table stinift.%s (%s)\n", table, StringUtils.join(columns, ',')

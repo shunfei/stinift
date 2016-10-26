@@ -75,12 +75,25 @@ public class StiniftMain {
                     @Override
                     public void run() {
                         log.info("System shutting down...");
-                        stinift.interrupt();
-                        System.exit(stinift.isSuccess() ? 0 : 1);
+
+                        Thread t = new Thread(() -> {
+                            stinift.interrupt();
+                            log.info("Interrupt done.");
+                        });
+                        t.start();
+                        try {
+                            // wait 5 seconds.
+                            t.join(5000);
+                        } catch (InterruptedException e) {
+                            log.error(e, "");
+                        }
+                        log.info("System exit.");
                     }
                 }
         );
         stinift.start();
+        log.info("System exit.");
+        System.exit(stinift.isSuccess() ? 0 : 1);
     }
 
     public static void main(String[] args) throws Exception {

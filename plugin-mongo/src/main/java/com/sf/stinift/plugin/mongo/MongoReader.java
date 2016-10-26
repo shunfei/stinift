@@ -62,13 +62,14 @@ public class MongoReader extends Reader {
             String[] fields = this.fields.split(",");
 
             DB database = conn.getDataSource();
-            DBCursor result;
-            if (StringUtils.isBlank(filter)) {
-                result = database.getCollection(collectionName).find(new BasicDBObject(), parseFieldsToDBObject(fields));
-            } else {
-                result = database.getCollection(collectionName).find(BasicDBObject.parse(filter), parseFieldsToDBObject(fields));
-            }
-            for (DBObject dbObject : result) {
+
+            BasicDBObject projection = parseFieldsToDBObject(fields);
+            BasicDBObject query = StringUtils.isBlank(filter)
+                    ? query = new BasicDBObject()
+                    : BasicDBObject.parse(filter);
+            DBCursor cursor = database.getCollection(collectionName).find(query, projection);
+            cursor.batchSize(100);
+            for (DBObject dbObject : cursor) {
                 try {
                     Map<String, String> objectMap = dbObjectToMap((BasicDBObject) dbObject);
                     Row row = new Row(fields.length);
@@ -79,8 +80,14 @@ public class MongoReader extends Reader {
                     if (!suc) {
                         return false;
                     }
+                } catch (OutOfMemoryError e) {
+                    log.error(e, "");
+                    return false;
                 } catch (Exception e) {
                     log.error(e, "fail one row");
+                }
+                if (dbObject instanceof BasicDBObject) {
+                    ((BasicDBObject) dbObject).clear();
                 }
             }
             return pushable.flush();
