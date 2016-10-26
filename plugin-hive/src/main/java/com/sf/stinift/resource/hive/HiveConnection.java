@@ -4,20 +4,24 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sf.stinift.resource.Resource;
 
 import org.apache.hadoop.hive.metastore.api.ThriftHiveMetastore;
-import org.apache.hive.service.cli.thrift.TCLIService;
-import org.apache.hive.service.cli.thrift.TOpenSessionReq;
-import org.apache.hive.service.cli.thrift.TOpenSessionResp;
+import org.apache.hive.service.rpc.thrift.TCLIService;
+import org.apache.hive.service.rpc.thrift.TOpenSessionReq;
+import org.apache.hive.service.rpc.thrift.TOpenSessionResp;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class HiveConnection extends Resource {
+    private static final Logger log = LoggerFactory.getLogger(HiveConnection.class);
+
     private final String host;
     private final Integer port;
     private final String metaStoreHost;
@@ -50,7 +54,9 @@ public class HiveConnection extends Resource {
     }
 
     public Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(String.format("jdbc:hive2://%s:%d/%s;auth=%s", host, port, db, auth), user, pwd);
+        String connStr = String.format("jdbc:hive2://%s:%d/%s;auth=%s", host, port, db, auth);
+        log.debug("connStr: {}", connStr);
+        return DriverManager.getConnection(connStr, user, pwd);
     }
 
     public HiveSession openSession() throws TException {

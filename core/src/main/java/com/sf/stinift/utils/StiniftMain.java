@@ -55,7 +55,7 @@ public class StiniftMain {
         if (!commandLine.hasOption("f")) {
             HelpFormatter formatter = new HelpFormatter();
             formatter.printHelp("stinift", "require a jobfile path", options, null, true);
-            System.exit(0);
+            System.exit(1);
         }
 
         if (commandLine.hasOption("var")) {
@@ -76,6 +76,7 @@ public class StiniftMain {
                     public void run() {
                         log.info("System shutting down...");
                         stinift.interrupt();
+                        System.exit(stinift.isSuccess() ? 0 : 1);
                     }
                 }
         );

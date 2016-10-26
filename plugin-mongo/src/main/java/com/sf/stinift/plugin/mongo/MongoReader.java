@@ -32,6 +32,8 @@ public class MongoReader extends Reader {
     private String fields;
     private String filter;
 
+    private volatile MongoConnection conn;
+
     public MongoReader(String mongoName, String collectionName, String fields, String filter) {
         this.mongoName = mongoName;
         this.collectionName = collectionName;
@@ -55,11 +57,11 @@ public class MongoReader extends Reader {
         if (resource == null) {
             throw new RuntimeException(String.format("mongo resource [%s] not found!", mongoName));
         }
-        MongoConnection mysqlConn = (MongoConnection) resource;
+        conn = (MongoConnection) resource;
         try {
             String[] fields = this.fields.split(",");
 
-            DB database = mysqlConn.getDataSource();
+            DB database = conn.getDataSource();
             DBCursor result;
             if (StringUtils.isBlank(filter)) {
                 result = database.getCollection(collectionName).find(new BasicDBObject(), parseFieldsToDBObject(fields));
@@ -67,10 +69,9 @@ public class MongoReader extends Reader {
                 result = database.getCollection(collectionName).find(BasicDBObject.parse(filter), parseFieldsToDBObject(fields));
             }
             for (DBObject dbObject : result) {
-                Map<String, String> objectMap = dbObjectToMap((BasicDBObject) dbObject);
-
-                Row row = new Row(fields.length);
                 try {
+                    Map<String, String> objectMap = dbObjectToMap((BasicDBObject) dbObject);
+                    Row row = new Row(fields.length);
                     for (int index = 0; index < fields.length; index++) {
                         row.setField(index, objectMap.get(fields[index]));
                     }
@@ -83,10 +84,9 @@ public class MongoReader extends Reader {
                 }
             }
             return pushable.flush();
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
         } finally {
+            conn.close();
+            conn = null;
         }
     }
 
@@ -95,7 +95,9 @@ public class MongoReader extends Reader {
 
         for (String key : dbObject.keySet()) {
             Object value = dbObject.get(key);
-            if (value.getClass() == BasicDBObject.class) {
+            if (value == null) {
+                result.put(key, null);
+            } else if (value.getClass() == BasicDBObject.class) {
                 Map<String, String> sub = dbObjectToMap((BasicDBObject) value);
                 for (Map.Entry<String, String> entry : sub.entrySet()) {
                     result.put(key + "." + entry.getKey(), entry.getValue());
@@ -128,6 +130,10 @@ public class MongoReader extends Reader {
 
     @Override
     public void interrupt() {
+        MongoConnection conn = this.conn;
+        if (conn != null) {
+            conn.close();
+        }
     }
 
     public static class Creator extends Reader.Creator {

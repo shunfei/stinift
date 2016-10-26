@@ -97,9 +97,6 @@ public class HiveWriter extends Writer {
             }
 
             return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
         } finally {
             dropTable(tmptable);
             session.close();

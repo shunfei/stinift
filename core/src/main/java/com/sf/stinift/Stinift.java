@@ -76,8 +76,7 @@ public class Stinift {
             }
             hasInterrupted.set(true);
         } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
+            log.error(e, "Fail");
         } finally {
             for (Resource resource : resources.values()) {
                 IOUtils.closeQuietly(resource);
@@ -142,10 +141,23 @@ public class Stinift {
 
     public boolean isRunning() {
         for (Worker worker : workers) {
-            if (worker.getContext().workerThread().isAlive()) {
+            WorkerContext wc = worker.getContext();
+            if (wc == null) {
+                continue;
+            }
+            if (wc.workerThread().isAlive()) {
                 return true;
             }
         }
         return false;
+    }
+
+    public boolean isSuccess() {
+        for (Worker worker : workers) {
+            if (worker.curStatus() != Worker.Status.Success) {
+                return false;
+            }
+        }
+        return true;
     }
 }
